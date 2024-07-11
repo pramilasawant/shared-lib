@@ -25,7 +25,7 @@ def call(Map config) {
                     stage('Build Java Docker Image') {
                         steps {
                             script {
-                                def javaImage = docker.build("${env.DOCKERHUB_USERNAME}/java-app")
+                                def javaImage = docker.build("${env.DOCKERHUB_USERNAME}/testhello")
                                 docker.withRegistry('', env.DOCKERHUB_CREDENTIALS) {
                                     javaImage.push('latest')
                                 }
@@ -47,7 +47,7 @@ def call(Map config) {
             stage('Deploy to Kubernetes') {
                 steps {
                     script {
-                        kubernetesDeploy(configs: 'deploymentservice.yaml', kubeconfigId: 'k8spwd')
+                        kubernetesDeploy(configs: 'deploymentservice.yaml', kubeconfigId: 'k8sconfigpwd')
                     }
                 }
             }
