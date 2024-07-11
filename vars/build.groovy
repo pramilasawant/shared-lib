@@ -47,7 +47,7 @@ def call(Map config) {
             stage('Deploy to Kubernetes') {
                 steps {
                     script {
-                        kubernetesDeploy(configs: 'k8s-deployment.yaml', kubeconfigId: 'kubeconfig-id')
+                        kubernetesDeploy(configs: 'deploymentservice.yaml', kubeconfigId: 'k8spwd')
                     }
                 }
             }
