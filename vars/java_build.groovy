@@ -15,7 +15,7 @@ def call(Map config = [:]) {
             stage('Build') {
                 steps {
                     script {
-                        sh 'mvn clean package'
+                        sh ' sudo mvn clean install'
                     }
                 }
             }
