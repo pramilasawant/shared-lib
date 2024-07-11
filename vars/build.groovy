@@ -52,13 +52,4 @@ def call(Map config) {
                 }
             }
         }
-        post {
-            success {
-                slackSend(channel: '#build-notifications', message: "Build and Deployment Successful: ${env.BUILD_URL}")
-            }
-            failure {
-                slackSend(channel: '#build-notifications', message: "Build and Deployment Failed: ${env.BUILD_URL}")
-            }
-        }
-    }
-}
+      
