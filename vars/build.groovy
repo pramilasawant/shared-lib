@@ -42,6 +42,7 @@ def call(Map config = [:]) {
                     parallel {
                         stage('Build and Push Java Image') {
                             steps {
+                                dir('testhello')
                                 script {
                                     def image = docker.build("${params.DOCKERHUB_USERNAME}/${params.JAVA_IMAGE_NAME}")
                                     docker.withRegistry('', 'dockerhubpwd') {
