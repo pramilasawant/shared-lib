@@ -47,6 +47,8 @@ def call(Map config = [:]) {
                                     sh 'mvn clean package'
                                     def image = docker.build("${params.DOCKERHUB_USERNAME}/${params.JAVA_IMAGE_NAME}")
                                     docker.withRegistry('', 'dockerhubpwd') {
+                                        sh 'docker build -t pramila188/testhello:latest .'
+                                        sh 'docker push pramila188/testhello:latest'
                                         image.push()
                                     }
                                 }
