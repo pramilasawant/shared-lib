@@ -8,12 +8,12 @@ def call(Map config = [:]) {
         }
 
         parameters {
-            string(name: 'JAVA_REPO', defaultValue: 'https://github.com/pramilasawant/springboot1-application.git', description: 'Java Application Repository')
+            string(name: 'JAVA_REPO', defaultValue: 'https://github.com/pramilasawant/java-app.git', description: 'Java Application Repository')
             string(name: 'PYTHON_REPO', defaultValue: 'https://github.com/pramilasawant/phython-application.git', description: 'Python Application Repository')
             string(name: 'DOCKERHUB_USERNAME', defaultValue: 'pramila188', description: 'DockerHub Username')
-            string(name: 'JAVA_IMAGE_NAME', defaultValue: 'testhello', description: 'Java Docker Image Name')
+            string(name: 'JAVA_IMAGE_NAME', defaultValue: 'java-app', description: 'Java Docker Image Name')
             string(name: 'PYTHON_IMAGE_NAME', defaultValue: 'python-app', description: 'Python Docker Image Name')
-            string(name: 'JAVA_NAMESPACE', defaultValue: 'test', description: 'Kubernetes Namespace for Java Application')
+            string(name: 'JAVA_NAMESPACE', defaultValue: 'java', description: 'Kubernetes Namespace for Java Application')
             string(name: 'PYTHON_NAMESPACE', defaultValue: 'python', description: 'Kubernetes Namespace for Python Application')
         }
 
@@ -42,13 +42,13 @@ def call(Map config = [:]) {
                     parallel {
                         stage('Build and Push Java Image') {
                             steps {
-                                dir('testhello')
+                                dir('java-app')
                                 script {
                                     sh 'mvn clean package'
                                     def image = docker.build("${params.DOCKERHUB_USERNAME}/${params.JAVA_IMAGE_NAME}")
                                     docker.withRegistry('', 'dockerhubpwd') {
-                                        sh 'docker build -t pramila188/testhello:latest .'
-                                        sh 'docker push pramila188/testhello:latest'
+                                        sh 'docker build -t pramila188/java-app:latest .'
+                                        sh 'docker push pramila188/java-app:latest'
                                         image.push()
                                     }
                                 }
