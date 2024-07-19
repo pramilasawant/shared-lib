@@ -1,9 +1,9 @@
 FROM openjdk:17-jdk
 
-WORKDIR /java-app
+WORKDIR /testhello
 
-ADD target/java-app-0.0.1-SNAPSHOT.jar java-app.jar
+ADD target/testhello-0.0.1-SNAPSHOT.jar testhello.jar
 
-EXPOSE 8060
+EXPOSE 8040
 
-ENTRYPOINT ["java", "-jar", "java-app.jar"]
+ENTRYPOINT ["java", "-jar", "testhello.jar"]
