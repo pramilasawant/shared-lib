@@ -1,41 +1,96 @@
-pipeline {
-    agent any
-
-    environment {
-        KUBECONFIG = credentials('kubeconfig-id') // Replace with your Kubernetes credentials ID
-        HELM_CHART_PATH = 'helm-charts'
-    }
-
-    stages {
-        stage('Deploy Java Application') {
-            steps {
-                script {
-                    // Deploy Java application
-                    dir('testhello') {
-                        sh 'helm upgrade --install java-app ${HELM_CHART_PATH}/java-chart --namespace test --set image.repository=pramila188/testhello --set image.tag=latest'
+def call(Map params = [:]) {
+    pipeline {
+        agent any
+        
+        environment {
+            DOCKERHUB_CREDENTIALS = credentials('dockerhub_credentials')
+            SLACK_CREDENTIALS = credentials('slack_credentials')
+            JAVA_IMAGE = 'pramila188/testhello'
+            PYTHON_IMAGE = 'pramila188/python-app'
+            JAVA_HELM_CHART = 'myspringbootchart'
+            PYTHON_HELM_CHART = 'python-app'
+            JAVA_NAMESPACE = 'test'
+            PYTHON_NAMESPACE = 'python'
+        }
+        
+        stages {
+            stage('Clone Repositories') {
+                parallel {
+                    stage('Clone Java Repo') {
+                        steps {
+                            git url: 'https://github.com/pramilasawant/springboot1-application.git', branch: 'main'
+                        }
+                    }
+                    stage('Clone Python Repo') {
+                        steps {
+                            dir('python-app') {
+                                git url: 'https://github.com/pramilasawant/phython-application.git', branch: 'main'
+                            }
+                        }
+                    }
+                }
+            }
+            
+            stage('Build and Push Docker Images') {
+                parallel {
+                    stage('Build and Push Java Image') {
+                        steps {
+                            script {
+                                docker.build("${JAVA_IMAGE}").push('latest')
+                            }
+                        }
+                    }
+                    stage('Build and Push Python Image') {
+                        steps {
+                            dir('python-app') {
+                                script {
+                                    docker.build("${PYTHON_IMAGE}").push('latest')
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            stage('Deploy with Helm') {
+                steps {
+                    script {
+                        // Deploy Java application
+                        sh """
+                        helm upgrade --install ${JAVA_HELM_CHART} ./helm/${JAVA_HELM_CHART} \
+                            --namespace ${JAVA_NAMESPACE} \
+                            --set image.repository=${JAVA_IMAGE} \
+                            --set image.tag=latest
+                        """
+                        // Deploy Python application
+                        dir('python-app') {
+                            sh """
+                            helm upgrade --install ${PYTHON_HELM_CHART} ./helm/${PYTHON_HELM_CHART} \
+                                --namespace ${PYTHON_NAMESPACE} \
+                                --set image.repository=${PYTHON_IMAGE} \
+                                --set image.tag=latest
+                            """
+                        }
                     }
                 }
             }
         }
         
-        stage('Deploy Python Application') {
-            steps {
-                script {
-                    // Deploy Python application
-                    dir('python-app') {
-                        sh 'helm upgrade --install python-app ${HELM_CHART_PATH}/python-chart --namespace python --set image.repository=pramila188/python-app --set image.tag=latest'
-                    }
-                }
+        post {
+            success {
+                slackSend (
+                    channel: '#jenkins',
+                    color: 'good',
+                    message: "Build and deployment succeeded: ${env.BUILD_URL}"
+                )
             }
-        }
-    }
-
-    post {
-        success {
-            slackSend(channel: '#build-status', color: 'good', message: "Deployment succeeded for ${env.JOB_NAME} #${env.BUILD_NUMBER}")
-        }
-        failure {
-            slackSend(channel: '#build-status', color: 'danger', message: "Deployment failed for ${env.JOB_NAME} #${env.BUILD_NUMBER}")
+            failure {
+                slackSend (
+                    channel: '#jenkins',
+                    color: 'danger',
+                    message: "Build and deployment failed: ${env.BUILD_URL}"
+                )
+            }
         }
     }
 }
